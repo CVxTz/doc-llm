@@ -29,3 +29,8 @@ A large part of the code is copied with small modification from https://huggingf
 ```
 https://www.kaggle.com/datasets/urbikn/sroie-datasetv2/data
 ```
+
+## Run
+
+Download the data and save in a folder like `~/Data/SROIE2019`
+Then you can run `bash scripts/run.sh`
