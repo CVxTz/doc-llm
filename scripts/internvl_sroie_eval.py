@@ -1,3 +1,4 @@
+import argparse
 import pathlib
 from statistics import mean
 
@@ -11,31 +12,48 @@ from doc_llm.modeling_internvl_chat import InternVLChatModel
 from doc_llm.sft_dataset import PROMPT
 from doc_llm.tokenization_internlm2 import InternLM2Tokenizer
 
-# Quantization Config
-quant_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.bfloat16,
-)
-
 if __name__ == "__main__":
-    path = "OpenGVLab/Mini-InternVL-Chat-2B-V1-5"
+    parser = argparse.ArgumentParser(description="Baseline Eval")
 
-    fold = "test"
+    parser.add_argument(
+        "--path",
+        type=str,
+        default="OpenGVLab/Mini-InternVL-Chat-2B-V1-5",
+        help="Path to the model or data",
+    )
+    parser.add_argument(
+        "--fold", type=str, default="test", help="Specify the fold to use"
+    )
+    parser.add_argument(
+        "--quant", action="store_true", default=False, help="Enable quantization"
+    )
+    parser.add_argument(
+        "--data_path",
+        type=pathlib.Path,
+        default=pathlib.Path("~/Data/SROIE2019").expanduser(),
+        help="Path to the data directory",
+    )
 
-    data_path = pathlib.Path("/home/youness/Data/SROIE2019")
+    args = parser.parse_args()
 
-    image_base_path = data_path / fold / "img"
-    entities_base_path = data_path / fold / "entities"
+    image_base_path = args.data_path / args.fold / "img"
+    entities_base_path = args.data_path / args.fold / "entities"
+
+    # Quantization Config
+    quant_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16,
+    )
 
     model = InternVLChatModel.from_pretrained(
-        path,
+        args.path,
         device_map={"": 0},
-        quantization_config=quant_config,
+        quantization_config=quant_config if args.quant else None,
         torch_dtype=torch.bfloat16,
     )
 
-    tokenizer = InternLM2Tokenizer.from_pretrained(path)
+    tokenizer = InternLM2Tokenizer.from_pretrained(args.path)
     # set the max number of tiles in `max_num`
 
     model.eval()
@@ -71,4 +89,5 @@ if __name__ == "__main__":
 
     print(f"Average score: {mean(scores)}")
 
-    # OpenGVLab/Mini-InternVL-Chat-2B-V1-5 : Average score: 68.70244956772335
+    # OpenGVLab/Mini-InternVL-Chat-2B-V1-5 : Average score: 74.2478386167147
+    # OpenGVLab/Mini-InternVL-Chat-2B-V1-5-LoRA : Average score: 95.4

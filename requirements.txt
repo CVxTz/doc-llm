@@ -11,3 +11,5 @@ torchvision~=0.18.0
 trl~=0.8.6
 thefuzz==0.22.1
 loguru~=0.7.2
+pandas~=2.2.2
+tqdm~=4.66.4

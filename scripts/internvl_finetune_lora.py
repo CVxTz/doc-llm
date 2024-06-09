@@ -1,4 +1,5 @@
-from pathlib import Path
+import argparse
+import pathlib
 
 import torch
 from transformers import (
@@ -16,14 +17,38 @@ EPOCHS = 3
 
 
 if __name__ == "__main__":
-    path = "OpenGVLab/Mini-InternVL-Chat-2B-V1-5"
+    parser = argparse.ArgumentParser(description="LoRA evaluation")
 
-    BASE_PATH = Path(__file__).parents[1] / "outputs"
+    parser.add_argument(
+        "--path",
+        type=str,
+        default="OpenGVLab/Mini-InternVL-Chat-2B-V1-5",
+        help="Path to the model or data",
+    )
+    parser.add_argument(
+        "--fold", type=str, default="test", help="Specify the fold to use"
+    )
+    parser.add_argument(
+        "--quant", action="store_true", default=False, help="Enable quantization"
+    )
+    parser.add_argument(
+        "--data_path",
+        type=pathlib.Path,
+        default=pathlib.Path("~/Data/SROIE2019").expanduser(),
+        help="Path to the data directory",
+    )
+
+    args = parser.parse_args()
+
+    BASE_PATH = pathlib.Path(__file__).parents[1] / "outputs"
     refined_model = str(BASE_PATH / "Mini-InternVL-Chat-2B-V1-5-LoRA")
 
-    data_path = Path("/home/youness/Data/SROIE2019")
+    image_base_path = args.data_path / args.fold / "img"
+    entities_base_path = args.data_path / args.fold / "entities"
 
-    _data = load_data(data_path, fold="train")
+    path = "OpenGVLab/Mini-InternVL-Chat-2B-V1-5"
+
+    _data = load_data(args.data_path, fold="train")
 
     # Quantization Config
     quant_config = BitsAndBytesConfig(
